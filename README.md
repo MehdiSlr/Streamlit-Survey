@@ -1,146 +1,122 @@
-# Streamlit GSheetsConnection
+# Streamlit Survey Application
 
-Connect to public or private Google Sheets from your Streamlit app. Powered by `st.experimental_connection()` and [gspread](https://github.com/burnash/gspread).
+## Overview
 
-GSheets Connection works in two modes:
+The Streamlit Survey application is designed to create and manage surveys using Streamlit and Google Sheets. This app allows users to fill out surveys and view results directly within the Streamlit interface, leveraging Google Sheets for data storage and management.
 
-- in Read Only mode, using publicly shared Spreadsheet URLs (Read Only mode)
-- CRUD operations support mode, with Authentication using Service Account. In order to use Service Account mode you need to enable Google Drive and Google Sheets API in [Google Developers Console](https://console.developers.google.com/).
-  Follow **Initial setup for CRUD mode** section in order to authenticate your Streamlit app first.
+## Features
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://st-gsheets.streamlit.app/)
+Survey Creation and Submission: Users can take the survey directly from the app.
+Results Display: View survey results in real-time.
+Google Sheets Integration: Read and write survey data to a Google Sheet.
+Streamlit Components: Utilizes Streamlit's interactive widgets and layout options.
 
-## Install
+## Installation
 
-```sh
-pip install st-gsheets-connection
+To install the necessary dependencies, run:
+
+```bash
+pip install -r requirements.txt
 ```
 
-## Minimal example: publicly shared spreadsheet (read-only)
+## Requirements
 
-```python
-# example/st_app.py
+- `Python` 3.8 or higher
+- `streamlit`
+- `gspread`
+- `gspread-pandas`
+- `gspread-dataframe`
+- `gspread-formatting`
+- `pandas`
+- `duckdb`
+- `sql-metadata`
+- `validators`
 
-import streamlit as st
-from streamlit_gsheets import GSheetsConnection
+## Usage
 
-url = "https://docs.google.com/spreadsheets/d/1JDy9md2VZPz4JbYtRPJLs81_3jUK47nx6GYQjgU8qNY/edit?usp=sharing"
+1. Clone the Repository:
 
-conn = st.experimental_connection("gsheets", type=GSheetsConnection)
-
-data = conn.read(spreadsheet=url, usecols=[0, 1])
-st.dataframe(data)
+```bash
+git clone https://github.com/MehdiSlr/Streamlit-Survey.git
+cd Streamlit-Survey
 ```
 
-## Service account / CRUD example
+2. Create API Key in google cloud console and give access in your Google Sheet.
 
-### Initial setup for private spreadsheet and/or CRUD mode
+3. Create `secrets.toml` file in `.streamlit` directory in the root of the project based on the API Key json file you created in google cloud console.:
 
-1. Setup `.streamlit/secrets.toml` inside your Streamlit app root directory,
-   check out [Secret management documentation](https://docs.streamlit.io/streamlit-community-cloud/get-started/deploy-an-app/connect-to-data-sources/secrets-management) for references.
-2. [Enable API Access for a Project](https://docs.gspread.org/en/v5.7.1/oauth2.html#enable-api-access-for-a-project)
-   - Head to [Google Developers Console](https://console.developers.google.com/) and create a new project (or select the one you already have).
-   - In the box labeled “Search for APIs and Services”, search for “Google Drive API” and enable it.
-   - In the box labeled “Search for APIs and Services”, search for “Google Sheets API” and enable it.
-3. [Using Service Account](https://docs.gspread.org/en/v5.7.1/oauth2.html#for-bots-using-service-account)
-   - Enable API Access for a Project if you haven’t done it yet.
-   - Go to “APIs & Services > Credentials” and choose “Create credentials > Service account key”.
-   - Fill out the form
-   - Click “Create” and “Done”.
-   - Press “Manage service accounts” above Service Accounts.
-   - Press on ⋮ near recently created service account and select “Manage keys” and then click on “ADD KEY > Create new key”.
-   - Select JSON key type and press “Create”.
-
-You will automatically download a JSON file with credentials. It may look like this:
-
-```
-{
-    "type": "service_account",
-    "project_id": "api-project-XXX",
-    "private_key_id": "2cd … ba4",
-    "private_key": "-----BEGIN PRIVATE KEY-----\nNrDyLw … jINQh/9\n-----END PRIVATE KEY-----\n",
-    "client_email": "473000000000-yoursisdifferent@developer.gserviceaccount.com",
-    "client_id": "473 … hd.apps.googleusercontent.com",
-    ...
-}
-```
-
-Remember the path to the downloaded credentials file. Also, in the next step you’ll need the value of client_email from this file.
-
-- **:red[Very important!]** Go to your spreadsheet and share it with a client_email from the step above. Just like you do with any other Google account. If you don’t do this, you’ll get a `gspread.exceptions.SpreadsheetNotFound` exception when trying to access this spreadsheet from your application or a script.
-
-4. Inside `streamlit/secrets.toml` place `service_account` configuration from downloaded JSON file, in the following format (where `gsheets` is your `st.connection` name):
-
-```
-# .streamlit/secrets.toml
+```toml
+[secrets]
 
 [connections.gsheets]
-spreadsheet = "<spreadsheet-name-or-url>"
-worksheet = "<worksheet-gid-or-folder-id>"  # worksheet GID is used when using Public Spreadsheet URL, when usign service_account it will be picked as folder_id
-type = ""  # leave empty when using Public Spreadsheet URL, when using service_account -> type = "service_account"
-project_id = ""
-private_key_id = ""
-private_key = ""
-client_email = ""
-client_id = ""
-auth_uri = ""
-token_uri = ""
-auth_provider_x509_cert_url = ""
-client_x509_cert_url = ""
+spreadsheet = "YOUR_SPREADSHEET_URL"
+worksheet = "YOUR_WORKSHEET_GID"
+type= "service_account"
+project_id = "YOUR_PROJECT_ID"
+private_key_id = "YOUR_PRIVATE_KEY_ID"
+private_key = "YOUR_PRIVATE_KEY"
+client_email = "YOUR_CLIENT_EMAIL"
+client_id = "YOUR_CLIENT_ID"
+auth_uri = "https://accounts.google.com/o/oauth2/auth"
+token_uri = "https://oauth2.googleapis.com/token"
+auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/streamlit-gsheets%40api-class-423418.iam.gserviceaccount.com"
+universe_domain = "googleapis.com"
 ```
 
-### Code
+4. Run the Application:
+
+```bash
+streamlit run main.py
+```
+
+## Main Scripts
+
+- `main.py`: The entry point of the application. It includes the main layout and navigation buttons for taking the survey and viewing results.
+- `Public_Sheet_Example.py`: Example script demonstrating how to connect to a public Google Sheet and read data using GSheetsConnection.
+
+## Google Sheets Connection
+
+In the `Public_Sheet_Example.py`, the connection to Google Sheets is established using a public URL:
 
 ```python
-# example/st_app_gsheets_using_service_account.py
-
-import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 
-st.title("Read Google Sheet as DataFrame")
-
-conn = st.experimental_connection("gsheets", type=GSheetsConnection)
-df = conn.read(worksheet="Example 1")
-
+url = "https://docs.google.com/spreadsheets/d/your_sheet_id/edit?usp=sharing"
+conn = st.connection("gsheets", type=GSheetsConnection)
+df = conn.read(spreadsheet=url, usecols=[0, 1])
 st.dataframe(df)
 ```
 
-```toml
-# .streamlit/secrets.toml
+## Survey Navigation
 
-[connections.gsheets]
-spreadsheet = "<spreadsheet-name-or-url>"
-worksheet = "<worksheet-gid-or-folder-id>"  # worksheet GID is used when using Public Spreadsheet URL, when usign service_account it will be picked as folder_id
-type = ""  # leave empty when using Public Spreadsheet URL, when using service_account -> type = "service_account"
-project_id = ""
-private_key_id = ""
-private_key = ""
-client_email = ""
-client_id = ""
-auth_uri = ""
-token_uri = ""
-auth_provider_x509_cert_url = ""
-client_x509_cert_url = ""
+The main.py script uses Streamlit's button components to navigate between different pages:
+
+```python
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("Take the Survey", use_container_width=True, type="primary"):
+        st.switch_page("pages/Survey.py")
+
+with col2:
+    if st.button("See Survey Results", use_container_width=True):
+        st.switch_page("pages/Result.py")
 ```
 
-```txt
-# requirements.txt
+## Contributing
 
-streamlit==1.22
-git+https://github.com/streamlit/gsheets-connection
-pandasql  # this is for example/st_app.py only
-```
+Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
 
-## Full example
+## Acknowledgements
 
-Check gsheets_connection/example directory for full example of the usage.
+- Using [Streamlit](https://streamlit.io) API, gspread, gspread-pandas, gspread-dataframe, gspread-formatting, pandas, duckdb, sql-metadata, and validators.
+- Using [Google Sheets](https://docs.google.com/spreadsheets/) API.
 
-## Q&A
+## License
 
-- > Does this work with a public spreadsheet without the authentication details? Or only a private spreadsheet?
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-  GSheets Connection works in two modes:
+## Author
 
-  - in Read Only mode, using publicly shared Spreadsheet URLs (Read Only mode)
-  - CRUD operations support mode, with Authentication using Service Account. In order to use Service Account mode you need to enable Google Drive and Google Sheets API in [Google Developers Console](https://console.developers.google.com/).
-    Follow **Initial setup for CRUD mode** section in order to authenticate your Streamlit app first.
+This project was created by [Mehdi Slr](https://github.com/MehdiSlr).
